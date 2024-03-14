@@ -53,7 +53,7 @@ const App = () => {
         setVotes(newVotes);
 
         if (newVotes[selected] > newVotes[mostVotesIndex]) {
-            setMostVotesIndex(selected``);
+            setMostVotesIndex(selected);
         }
     };
 
