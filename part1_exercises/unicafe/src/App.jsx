@@ -1,98 +1,96 @@
 import { useState } from "react";
 
-const Button = ({ handleClick, text }) => {
-    return <button onClick={handleClick}>{text}</button>;
+const Button = ({ onClick, text }) => {
+    return <button onClick={onClick}>{text}</button>;
 };
 
-const StatisticLine = ({ text, value }) => {
-    if (text == "positive") {
-        return <div>text {value}%</div>;
-    }
+const Anecdote = ({ votes, text }) => {
     return (
         <div>
-            {text} {value}
+            <p>This anecdote has {votes} votes.</p>
+            <p>{text}</p>
         </div>
     );
 };
 
-const StatisticRow = ({ text, value }) => {
-    if (text == "positive") {
-        return (
-            <tr>
-                <td>{text}</td>
-                <td>{value}%</td>
-            </tr>
-        );
-    }
+const AnecdoteOfTheDay = ({ votes, text }) => {
     return (
-        <tr>
-            <td>{text}</td>
-            <td>{value}</td>
-        </tr>
+        <div>
+            <h1>Anecdote of the day</h1>
+            <Anecdote votes={votes} text={text} />
+        </div>
     );
 };
 
-const Statistics = ({ good, neutral, bad }) => {
-    const all = good + neutral + bad;
-    if (all == 0) {
-        return (
-            <div>
-                <h1>statistics</h1>
-                <p>No feedback has been given yet</p>
-            </div>
-        );
-    }
-    const average = (good - bad) / all || 0;
-    const percentPositive = (good / all) * 100;
+const MostVotedAnecdote = ({ votes, text }) => {
     return (
         <div>
-            <h1>statistics</h1>
-            <table>
-                <tbody>
-                    <StatisticRow text="good" value={good} />
-                    <StatisticRow text="bad" value={bad} />
-                    <StatisticRow text="neutral" value={neutral} />
-                    <StatisticRow text="all" value={all} />
-                    <StatisticRow text="average" value={average} />
-                    <StatisticRow text="positive" value={percentPositive} />
-                </tbody>
-            </table>
+            <h1>Anecdote with most votes</h1>
+            <Anecdote votes={votes} text={text} />
         </div>
     );
 };
 
 const App = () => {
-    // save clicks of each button to its own state
-    const [good, setGood] = useState(0);
-    const [neutral, setNeutral] = useState(0);
-    const [bad, setBad] = useState(0);
+    const anecdotes = [
+        "If it hurts, do it more often.",
+        "Adding manpower to a late software project makes it later!",
+        "The first 90 percent of the code accounts for the first 90 percent of the development time...The remaining 10 percent of the code accounts for the other 90 percent of the development time.",
+        "Any fool can write code that a computer can understand. Good programmers write code that humans can understand.",
+        "Premature optimization is the root of all evil.",
+        "Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it.",
+        "Programming without an extremely heavy use of console.log is same as if a doctor would refuse to use x-rays or blood tests when diagnosing patients.",
+        "The only way to go fast, is to go well.",
+    ];
 
-    const incrementMap = {
-        good: function () {
-            setGood(increment(good));
-        },
-        neutral: function () {
-            setNeutral(increment(neutral));
-        },
-        bad: function () {
-            setBad(increment(bad));
-        },
+    const [selected, setSelected] = useState(0);
+    const [votes, setVotes] = useState(Array(anecdotes.length).fill(0));
+    const [mostVotesIndex, setMostVotesIndex] = useState(0);
+
+    const handleVotes = () => {
+        const newVotes = { ...votes };
+        newVotes[selected] += 1;
+        setVotes(newVotes);
+
+        if (newVotes[selected] > newVotes[mostVotesIndex]) {
+            setMostVotesIndex(selected``);
+        }
     };
 
-    const increment = (variable) => {
-        return function () {
-            let value = variable + 1;
-            return value;
-        };
+    const getVotes = (index) => {
+        if (typeof index == "undefined") {
+            return votes[selected] || 0;
+        }
+
+        return votes[index] || 0;
+    };
+
+    const getRandomAnecdoteIndex = () => {
+        function getRandomNumber() {
+            return Math.floor(Math.random() * anecdotes.length);
+        }
+
+        let randomIndex = getRandomNumber();
+        while (randomIndex == selected) {
+            randomIndex = getRandomNumber();
+        }
+        return randomIndex;
+    };
+
+    const handleAnecdoteIndex = () => {
+        let newIndex = getRandomAnecdoteIndex();
+        setSelected(newIndex);
     };
 
     return (
         <div>
-            <h1>give feedback</h1>
-            <Button handleClick={incrementMap["good"]} text="good" />
-            <Button handleClick={incrementMap["neutral"]} text="neutral" />
-            <Button handleClick={incrementMap["bad"]} text="bad" />
-            <Statistics good={good} neutral={neutral} bad={bad} />
+            <AnecdoteOfTheDay votes={getVotes()} text={anecdotes[selected]} />
+            <Button onClick={handleAnecdoteIndex} text="next anecdote" />
+            <Button onClick={handleVotes} text="vote for this anecdote" />
+            <MostVotedAnecdote
+                votes={votes[mostVotesIndex]}
+                text={anecdotes[mostVotesIndex]}
+            />
         </div>
     );
 };
