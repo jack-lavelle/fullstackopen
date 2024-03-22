@@ -1,27 +1,23 @@
 import { useState, useEffect } from "react";
 import Filter from "./components/Filter";
+import personsService from "./services/people";
 import PersonForm from "./components/PersonForm";
 import Persons from "./components/Persons";
-import axios from "axios";
 
 const App = () => {
     const [persons, setPersons] = useState([]);
     const [newName, setNewName] = useState("");
-    const [newPhoneNumber, setNewPhoneNumber] = useState("000-000-0000");
+    const [newPhoneNumber, setNewPhoneNumber] = useState("");
     const [searchName, setSearchName] = useState("");
 
     useEffect(() => {
-        axios.get("http://localhost:3001/persons").then((response) => {
-            setPersons(response.data);
+        personsService.getAll().then((initialPersons) => {
+            setPersons(initialPersons);
         });
     });
 
     const handleSearchNameChange = (event) => {
         setSearchName(event.target.value);
-    };
-
-    const containsNewName = () => {
-        return persons.find((person) => person.name === newName) !== undefined;
     };
 
     const handleNewNameChange = (event) => {
@@ -32,23 +28,63 @@ const App = () => {
         setNewPhoneNumber(event.target.value);
     };
 
-    const addPerson = (event) => {
-        event.preventDefault();
-        if (containsNewName()) {
-            alert(`${newName} is already added in the phonebook.`);
-            setNewName("");
+    const deletePerson = (id) => {
+        const person = persons.find((person) => person.id === id);
+        debugger;
+        if (!window.confirm(`Delete ${person.name}?`)) {
             return;
         }
 
-        const PersonObject = {
-            id: persons.length + 1,
-            name: newName,
-            phoneNumber: newPhoneNumber,
-        };
+        personsService.deletePerson(id).then(() => {
+            const index = persons.indexOf(person);
+            const newPersons = persons.slice();
+            if (index > -1) {
+                newPersons.splice(index, 1);
+            }
+            setPersons(newPersons);
+        });
+    };
 
-        setPersons(persons.concat(PersonObject));
-        setNewName("");
-        setNewPhoneNumber("000-000-0000");
+    const addPerson = (event) => {
+        const person = persons.find((person) => person.name === newName);
+        event.preventDefault();
+
+        if (person !== undefined) {
+            if (
+                window.confirm(
+                    `${person.name} is already added to the phonebook, replace the old number with the new one?`
+                )
+            ) {
+                const updatedPerson = {
+                    ...person,
+                    phoneNumber: newPhoneNumber,
+                };
+                personsService
+                    .update(person.id, updatedPerson)
+                    .then((returnedPerson) => {
+                        const index = persons.indexOf(returnedPerson);
+                        const newPersons = persons.slice();
+                        if (index > -1) {
+                            newPersons[index].phoneNumber = newPhoneNumber;
+                        }
+                    });
+            }
+
+            setNewName("");
+            setNewPhoneNumber("");
+            return;
+        } else {
+            const personObject = {
+                name: newName,
+                phoneNumber: newPhoneNumber,
+            };
+
+            personsService.create(personObject).then((returnedPerson) => {
+                persons.concat(returnedPerson);
+                setNewName("");
+                setNewPhoneNumber("");
+            });
+        }
     };
 
     return (
@@ -67,7 +103,11 @@ const App = () => {
                 handleNewPhoneNumberChange={handleNewPhoneNumberChange}
             />
             <h2>Numbers</h2>
-            <Persons persons={persons} searchName={searchName} />
+            <Persons
+                persons={persons}
+                searchName={searchName}
+                deletePerson={deletePerson}
+            />
         </div>
     );
 };
