@@ -4,11 +4,33 @@ import personsService from "./services/people";
 import PersonForm from "./components/PersonForm";
 import Persons from "./components/Persons";
 
+const PersonAddedNotification = ({ newPersonName }) => {
+    if (newPersonName === null) {
+        return null;
+    }
+
+    return (
+        <div className="personAddedNotification">{`User with name ${newPersonName} has been successfully added or modified.`}</div>
+    );
+};
+
+const GetPersonErrorNotification = ({ name }) => {
+    if (name === null) {
+        return null;
+    }
+
+    return (
+        <div className="getPersonError">{`Failed to load the information for ${name}, it seems to have already been removed.`}</div>
+    );
+};
+
 const App = () => {
     const [persons, setPersons] = useState([]);
     const [newName, setNewName] = useState("");
     const [newPhoneNumber, setNewPhoneNumber] = useState("");
     const [searchName, setSearchName] = useState("");
+    const [newlyAddedName, setNewlyAddedName] = useState(null);
+    const [getPersonErrorName, setPersonErrorName] = useState(null);
 
     useEffect(() => {
         personsService.getAll().then((initialPersons) => {
@@ -30,7 +52,6 @@ const App = () => {
 
     const deletePerson = (id) => {
         const person = persons.find((person) => person.id === id);
-        debugger;
         if (!window.confirm(`Delete ${person.name}?`)) {
             return;
         }
@@ -49,7 +70,20 @@ const App = () => {
         const person = persons.find((person) => person.name === newName);
         event.preventDefault();
 
-        if (person !== undefined) {
+        if (person === undefined) {
+            const personObject = {
+                name: newName,
+                phoneNumber: newPhoneNumber,
+            };
+
+            personsService.create(personObject).then((returnedPerson) => {
+                persons.concat(returnedPerson);
+                setNewlyAddedName(returnedPerson.name);
+                setTimeout(() => {
+                    setNewlyAddedName(null);
+                }, 5000);
+            });
+        } else {
             if (
                 window.confirm(
                     `${person.name} is already added to the phonebook, replace the old number with the new one?`
@@ -67,29 +101,27 @@ const App = () => {
                         if (index > -1) {
                             newPersons[index].phoneNumber = newPhoneNumber;
                         }
+                        setTimeout(() => {
+                            setNewlyAddedName(null);
+                        }, 5000);
+                    })
+                    .catch((error) => {
+                        setPersonErrorName(person.name);
+                        setTimeout(() => {
+                            setPersonErrorName(null);
+                        }, 5000);
                     });
             }
-
-            setNewName("");
-            setNewPhoneNumber("");
-            return;
-        } else {
-            const personObject = {
-                name: newName,
-                phoneNumber: newPhoneNumber,
-            };
-
-            personsService.create(personObject).then((returnedPerson) => {
-                persons.concat(returnedPerson);
-                setNewName("");
-                setNewPhoneNumber("");
-            });
         }
+        setNewName("");
+        setNewPhoneNumber("");
     };
 
     return (
         <div>
             <h2>Phonebook</h2>
+            <PersonAddedNotification newPersonName={newlyAddedName} />
+            <GetPersonErrorNotification name={getPersonErrorName} />
             <Filter
                 searchName={searchName}
                 handleSearchNameChange={handleSearchNameChange}
