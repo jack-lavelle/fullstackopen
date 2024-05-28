@@ -1,1 +1,4 @@
-node_modules
+part3/frontend/node_modules
+part3/backend/node_modules
+part3/backend/.env
+.env

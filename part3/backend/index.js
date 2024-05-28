@@ -1,6 +1,8 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const Note = require("./models/note");
 
 const requestLogger = (request, response, next) => {
     console.log("Method:", request.method);
@@ -10,10 +12,10 @@ const requestLogger = (request, response, next) => {
     next();
 };
 
+app.use(express.static("dist"));
 app.use(requestLogger);
 app.use(express.json());
 app.use(cors());
-app.use(express.static("dist"));
 
 let notes = [
     {
@@ -38,18 +40,15 @@ app.get("/", (request, response) => {
 });
 
 app.get("/api/notes", (request, response) => {
-    response.json(notes);
+    Note.find({}).then((notes) => {
+        response.json(notes);
+    });
 });
 
 app.get("/api/notes/:id", (request, response) => {
-    const id = Number(request.params.id);
-    const note = notes.find((note) => note.id === id);
-
-    if (note) {
+    Note.findById(request.params.id).then((note) => {
         response.json(note);
-    } else {
-        response.status(404).end();
-    }
+    });
 });
 
 app.delete("/api/notes/:id", (request, response) => {
@@ -73,17 +72,17 @@ app.post("/api/notes", (request, response) => {
         });
     }
 
-    const note = {
+    const note = new Note({
         content: body.content,
-        important: Boolean(body.important) || false,
-        id: generateId(),
-    };
+        important: body.important || false,
+    });
 
-    notes = notes.concat(note);
-    response.json(note);
+    note.save().then((savedNote) => {
+        response.json(savedNote);
+    });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
