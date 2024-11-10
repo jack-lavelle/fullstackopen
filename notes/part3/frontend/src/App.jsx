@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Note from "./components/Note";
 import noteService from "./services/notes";
+//import logger from "./utils/logger";
 
 const ErrorNotification = ({ message }) => {
     if (message === null) {
@@ -69,7 +70,7 @@ const App = () => {
                 );
             })
             .catch((error) => {
-                console.log(error)
+                logger.info(error)
                 setErrorMessage(
                     `The following note: "${note.content}" was already removed from the server`
                 );
