@@ -5,6 +5,10 @@ const supertest = require("supertest");
 const { app, closeDatabase, startDatabase } = require("../app");
 const api = supertest(app);
 
+// -- 11/20/24 --
+// TODO - clean up database before and after tests
+// TODO - running only one test *should* work
+
 const blog1 = {
   title: "title1",
   author: "author1",
@@ -100,6 +104,43 @@ describe("integration tests", async () => {
           "id is undefined",
         );
         assert.notStrictEqual(response.body[0].id, null, "id is null");
+      });
+  });
+
+  test("POST & DELETE - blogs", async () => {
+    let id;
+    await api
+      .post("/api/blogs")
+      .send(blog1)
+      .expect(201)
+      .expect("Content-Type", /application\/json/)
+      .expect((response) => {
+        assert.notStrictEqual(response.body.id, undefined);
+        id = response.body.id;
+      });
+
+    await api.delete(`/api/blogs/${id}`).expect(204);
+  });
+
+  test("POST & PATCH - blogs", async () => {
+    let id;
+    await api
+      .post("/api/blogs")
+      .send(blog1)
+      .expect(201)
+      .expect("Content-Type", /application\/json/)
+      .expect((response) => {
+        assert.notStrictEqual(response.body.id, undefined);
+        id = response.body.id;
+      });
+
+    await api.patch(`/api/blogs/${id}`).send({ likes: 10 }).expect(200);
+    await api
+      .get(`/api/blogs/${id}`)
+      .expect(200)
+      .expect("Content-Type", /application\/json/)
+      .expect((response) => {
+        assert.strictEqual(response.body.likes, 10);
       });
   });
 });
