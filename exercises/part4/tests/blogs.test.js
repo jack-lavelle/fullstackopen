@@ -4,35 +4,14 @@ const listHelper = require("../utils/list_helper");
 const supertest = require("supertest");
 const { app, closeDatabase, startDatabase } = require("../app");
 const api = supertest(app);
+const { blog1, blog2, blog3, blog4 } = require("./helpers");
 
 // -- 11/20/24 --
 // TODO - clean up database before and after tests
 // TODO - running only one test *should* work
-
-const blog1 = {
-  title: "title1",
-  author: "author1",
-  url: "url1.com",
-  likes: 5,
-};
-const blog2 = {
-  title: "title1",
-  author: "author1",
-  url: "url1.com",
-  likes: 6,
-};
-const blog3 = {
-  title: "title1",
-  author: "author2",
-  url: "url1.com",
-  likes: 6,
-};
-const blog4 = {
-  title: "title1",
-  author: "author3",
-  url: "url1.com",
-  likes: 13,
-};
+//
+// -- 11/22/24 --
+// TODO - refactor tests to make the output cleaner
 
 describe("integration tests", async () => {
   beforeEach(async () => {
