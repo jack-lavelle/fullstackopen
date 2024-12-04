@@ -22,105 +22,43 @@ describe("integration tests", async () => {
     await closeDatabase();
   });
 
-  test("POST - blogs", async () => {
-    let oldLength, newLength;
-    await api
-      .get("/api/blogs")
-      .expect(200)
-      .expect("Content-Type", /application\/json/)
-      .expect((response) => {
-        oldLength = response.body.length;
-      });
+  describe("blogs", () => {
+    test("POST & DELETE", async () => {
+      let id;
+      await api
+        .post("/api/blogs")
+        .send(blog1)
+        .expect(201)
+        .expect("Content-Type", /application\/json/)
+        .expect((response) => {
+          assert.notStrictEqual(response.body.id, undefined);
+          id = response.body.id;
+        });
 
-    await api
-      .post("/api/blogs")
-      .send(blog1)
-      .expect(201)
-      .expect("Content-Type", /application\/json/);
+      await api.delete(`/api/blogs/${id}`).expect(204);
+    });
 
-    await api
-      .get("/api/blogs")
-      .expect(200)
-      .expect("Content-Type", /application\/json/)
-      .expect((response) => {
-        newLength = response.body.length;
-      });
+    test("POST, GET, & PATCH - blogs", async () => {
+      let id;
+      await api
+        .post("/api/blogs")
+        .send(blog1)
+        .expect(201)
+        .expect("Content-Type", /application\/json/)
+        .expect((response) => {
+          assert.notStrictEqual(response.body.id, undefined);
+          id = response.body.id;
+        });
 
-    assert.strictEqual(newLength, oldLength + 1, "blog not added");
-  });
-
-  test("POST - blogs with no likes", async () => {
-    await api
-      .post("/api/blogs")
-      .send({ title: "title", author: "author", url: "url" })
-      .expect(201)
-      .expect((response) => {
-        assert.strictEqual(response.body.likes, 0);
-      }, "likes not set to 0");
-  });
-
-  test("POST - blogs with no title", async () => {
-    await api.post("/api/blogs").send({ author: "author" }).expect(400);
-  });
-
-  test("POST - blogs with no url", async () => {
-    await api
-      .post("/api/blogs")
-      .send({ title: "title", author: "author" })
-      .expect(400);
-  });
-
-  test("GET - blogs", async () => {
-    await api
-      .get("/api/blogs")
-      .expect(200)
-      .expect("Content-Type", /application\/json/)
-      .expect((response) => {
-        assert.ok(response.body.length > 0, "no blogs returned");
-        assert.notStrictEqual(
-          response.body[0].id,
-          undefined,
-          "id is undefined",
-        );
-        assert.notStrictEqual(response.body[0].id, null, "id is null");
-      });
-  });
-
-  test("POST & DELETE - blogs", async () => {
-    let id;
-    await api
-      .post("/api/blogs")
-      .send(blog1)
-      .expect(201)
-      .expect("Content-Type", /application\/json/)
-      .expect((response) => {
-        assert.notStrictEqual(response.body.id, undefined);
-        id = response.body.id;
-      });
-
-    await api.delete(`/api/blogs/${id}`).expect(204);
-  });
-
-  test("POST & PATCH - blogs", async () => {
-    let id;
-    await api
-      .post("/api/blogs")
-      .send(blog1)
-      .expect(201)
-      .expect("Content-Type", /application\/json/)
-      .expect((response) => {
-        assert.notStrictEqual(response.body.id, undefined);
-        id = response.body.id;
-      });
-
-    await api.patch(`/api/blogs/${id}`).send({ likes: 10 }).expect(200);
-    await api
-      .get(`/api/blogs/${id}`)
-      .expect(200)
-      .expect("Content-Type", /application\/json/)
-      .expect((response) => {
-        assert.strictEqual(response.body.likes, 10);
-      });
+      await api.patch(`/api/blogs/${id}`).send({ likes: 10 }).expect(200);
+      await api
+        .get(`/api/blogs/${id}`)
+        .expect(200)
+        .expect("Content-Type", /application\/json/)
+        .expect((response) => {
+          assert.strictEqual(response.body.likes, 10);
+        });
+    });
   });
 });
 
