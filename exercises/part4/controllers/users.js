@@ -21,8 +21,13 @@ usersRouter.get("/:id", async (request, response) => {
 });
 
 usersRouter.post("/", async (request, response) => {
-  if (!request.body.username || !request.body.name || !request.body.password) {
-    response.status(400).end();
+  if (!request.body.username) {
+    response.status(400).send({ error: "username is required" });
+    return;
+  }
+
+  if (!request.body.password) {
+    response.status(400).send({ error: "password is required" });
     return;
   }
 
