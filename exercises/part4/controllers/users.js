@@ -1,6 +1,6 @@
-const User = require("../models/User");
+const User = require("../models/user");
 const usersRouter = require("express").Router();
-const { createUserHandler } = require("../utils/users_helper");
+const { createUserHandler, validateUser } = require("../utils/users_helper");
 
 usersRouter.get("/", async (request, response) => {
   const users = await User.find({});
@@ -21,15 +21,17 @@ usersRouter.get("/:id", async (request, response) => {
 });
 
 usersRouter.post("/", async (request, response) => {
-  if (!request.body.username) {
-    response.status(400).send({ error: "username is required" });
+  const error = validateUser(request.body.username, request.body.password);
+  if (error) {
+    response.status(400).json({ error });
     return;
   }
 
-  if (!request.body.password) {
-    response.status(400).send({ error: "password is required" });
-    return;
-  }
+  User.find({ username: request.body.username }).then((users) => {
+    if (users.length > 0) {
+      return { error: "username must be unique" };
+    }
+  });
 
   const user = await createUserHandler(request.body);
 

@@ -23,7 +23,7 @@ describe("integration tests", async () => {
   });
 
   describe("blogs", () => {
-    test("POST & DELETE", async () => {
+    test("ensures a blog can be created and deleted", async () => {
       let id;
       await api
         .post("/api/blogs")
@@ -38,7 +38,7 @@ describe("integration tests", async () => {
       await api.delete(`/api/blogs/${id}`).expect(204);
     });
 
-    test("POST, GET, & PATCH - blogs", async () => {
+    test("ensures a blog can be created, updated, and deleted", async () => {
       let id;
       await api
         .post("/api/blogs")
