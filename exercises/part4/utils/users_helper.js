@@ -2,13 +2,14 @@ const bcrypt = require("bcrypt");
 const User = require("../models/user");
 
 const createUserHandler = async (body) => {
-  const { name, username, password } = body;
+  const { name, username, password, blogs } = body;
   const saltRounds = 10;
   const passwordHash = await bcrypt.hash(password, saltRounds);
   return new User({
     name,
     username,
     passwordHash,
+    blogs,
   });
 };
 
