@@ -2,9 +2,16 @@ const { test, describe, afterEach, beforeEach } = require("node:test");
 const assert = require("node:assert");
 const listHelper = require("../utils/list_helper");
 const supertest = require("supertest");
-const { app, closeDatabase, startDatabase } = require("../app");
+const { app } = require("../app");
 const api = supertest(app);
-const { blog1, blog2, blog3, blog4 } = require("./helpers");
+const {
+  blog1,
+  blog2,
+  blog3,
+  blog4,
+  closeDatabase,
+  startDatabase,
+} = require("./helpers");
 
 // -- 11/20/24 --
 // TODO - clean up database before and after tests

@@ -1,9 +1,10 @@
 const { test, describe, after, before } = require("node:test");
 const assert = require("node:assert");
 const supertest = require("supertest");
-const { app, closeDatabase, startDatabase } = require("../app");
+const { app } = require("../app");
 const { validateUser } = require("../utils/users_helper");
 const api = supertest(app);
+const { startDatabase, closeDatabase } = require("./helpers");
 
 describe("unit tests", () => {
   test("username and password are required", () => {
