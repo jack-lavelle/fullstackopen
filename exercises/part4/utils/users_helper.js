@@ -1,5 +1,6 @@
-const bcrypt = require("bcrypt");
-const User = require("../models/user");
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import User from "../models/user.js"; // Ensure to include the .js extension if needed
 
 const createUserHandler = async (body) => {
   const { name, username, password, blogs } = body;
@@ -33,4 +34,4 @@ const validateUser = (username, password) => {
   return null;
 };
 
-module.exports = { createUserHandler, validateUser };
+export default { createUserHandler, validateUser };

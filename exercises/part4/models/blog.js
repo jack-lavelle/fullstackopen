@@ -1,11 +1,11 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const blogSchema = new mongoose.Schema({
+const blogSchema = new Schema({
   title: String,
   url: String,
   likes: Number,
   user: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "User",
   },
 });
@@ -18,6 +18,6 @@ blogSchema.set("toJSON", {
   },
 });
 
-const Blog = mongoose.model("Blog", blogSchema);
+const Blog = model("Blog", blogSchema);
 
-module.exports = Blog;
+export default Blog;

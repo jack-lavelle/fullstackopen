@@ -1,10 +1,12 @@
-const { test, describe, after, before } = require("node:test");
-const assert = require("node:assert");
-const supertest = require("supertest");
-const { app } = require("../app");
-const { validateUser } = require("../utils/users_helper");
+import { test, describe, after, before } from "node:test";
+import assert, { notStrictEqual, strictEqual } from "node:assert";
+import supertest from "supertest";
+import app from "../app.js";
+import userHelper from "../utils/users_helper.js";
+const validateUser = userHelper.validateUser;
 const api = supertest(app);
-const { startDatabase, closeDatabase } = require("./helpers");
+import appHelper from "./helpers.js";
+const { startDatabase, closeDatabase } = appHelper;
 
 describe("unit tests", () => {
   test("username and password are required", () => {
@@ -52,7 +54,7 @@ describe("integration tests", () => {
         await api
           .post("/api/users")
           .send({
-            username: "testUsername",
+            username: "testUsername1",
             name: "testName",
             password: "testPassword",
           })
@@ -60,9 +62,9 @@ describe("integration tests", () => {
           .expect("Content-Type", /application\/json/)
           .expect((response) => {
             const user = response.body;
-            assert.notStrictEqual(user.id, undefined);
-            assert.notStrictEqual(user.username, undefined);
-            assert.notStrictEqual(user.name, undefined);
+            notStrictEqual(user.id, undefined);
+            notStrictEqual(user.username, undefined);
+            notStrictEqual(user.name, undefined);
 
             id = response.body.id;
           });
@@ -72,9 +74,9 @@ describe("integration tests", () => {
           .expect(200)
           .expect("Content-Type", /application\/json/)
           .expect((response) => {
-            assert.strictEqual(response.body.id, id);
-            assert.strictEqual(response.body.username, "testUsername");
-            assert.strictEqual(response.body.name, "testName");
+            strictEqual(response.body.id, id);
+            strictEqual(response.body.username, "testUsername");
+            strictEqual(response.body.name, "testName");
           });
         await api.delete(`/api/users/${id}`).expect(204);
         await api.get(`/api/users/${id}`).expect(404);

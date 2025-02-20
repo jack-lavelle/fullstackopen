@@ -2,6 +2,4 @@ const info = (...params) => {
   console.log(...params);
 };
 
-module.exports = {
-  info,
-};
+export default { info };

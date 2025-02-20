@@ -1,7 +1,9 @@
-const User = require("../models/user");
-const usersRouter = require("express").Router();
-const { createUserHandler, validateUser } = require("../utils/users_helper");
+import router from "express";
+import User from "../models/user.js";
+import userHelper from "../utils/users_helper.js";
+const { createUserHandler, validateUser } = userHelper;
 
+const usersRouter = router.Router();
 usersRouter.get("/", async (_, response) => {
   const users = await User.find({}).populate("blogs");
   response.json(users);
@@ -23,28 +25,24 @@ usersRouter.get("/:id", async (request, response) => {
 });
 
 usersRouter.post("/", async (request, response) => {
-  try {
-    const error = validateUser(request.body.username, request.body.password);
-    if (error) {
-      response.status(400).json({ error });
-      return;
-    }
-
-    // silly of me to not properly use the async/await pattern here
-    const existingUser = await User.findOne({
-      username: request.body.username,
-    });
-    if (existingUser) {
-      return response.status(400).json({ error: "username must be unique" });
-    }
-
-    const user = await createUserHandler(request.body);
-
-    await user.save();
-    response.status(201).json(user);
-  } catch (error) {
-    response.status(500).json({ error: error.message });
+  const error = validateUser(request.body.username, request.body.password);
+  if (error) {
+    return response.status(400).json({ error: "failed to validate user" });
   }
+
+  // silly of me to not properly use the async/await pattern here
+  const existingUser = await User.findOne({
+    username: request.body.username,
+  });
+  if (existingUser !== null) {
+    response.status(400).json({ error: "username must be unique" });
+    return;
+  }
+
+  const user = await createUserHandler(request.body);
+
+  await user.save();
+  response.status(201).json(user);
 });
 
 usersRouter.delete("/:id", async (request, response) => {
@@ -57,4 +55,4 @@ usersRouter.delete("/:id", async (request, response) => {
   response.status(204).end();
 });
 
-module.exports = usersRouter;
+export default usersRouter;

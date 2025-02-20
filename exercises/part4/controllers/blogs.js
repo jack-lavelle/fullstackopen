@@ -1,7 +1,10 @@
-const Blog = require("../models/blog");
-const blogsRouter = require("express").Router();
+import Blog from "../models/blog.js";
+import router from "express";
+import { getAuthorizedUserFromRequest } from "../utils/auth_helper.js";
 
-blogsRouter.get("/", async (request, response) => {
+const blogsRouter = router.Router();
+
+blogsRouter.get("/", async (_, response) => {
   const blogs = await Blog.find({}).populate("user", {
     id: 1,
     username: 1,
@@ -24,12 +27,23 @@ blogsRouter.get("/:id", async (request, response) => {
 });
 
 blogsRouter.post("/", async (request, response) => {
-  const blog = new Blog(request.body);
-  if (!blog.title || !blog.url) {
-    response.status(400).end();
-    return;
+  let user;
+  try {
+    user = await getAuthorizedUserFromRequest(request);
+  } catch (error) {
+    return response.status(500).json({ error: error.message });
   }
 
+  if (user === null) {
+    return response.status(401).json({ error: "invalid token" });
+  }
+
+  if (!request.body.title || !request.body.url) {
+    return response.status(400).end();
+  }
+
+  request.body.user = user.id;
+  const blog = new Blog(request.body);
   if (!blog.likes) {
     blog.likes = 0;
   }
@@ -74,4 +88,4 @@ blogsRouter.patch("/:id", async (request, response) => {
   }
 });
 
-module.exports = blogsRouter;
+export default blogsRouter;

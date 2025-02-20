@@ -1,17 +1,16 @@
-const { test, describe, afterEach, beforeEach } = require("node:test");
-const assert = require("node:assert");
-const listHelper = require("../utils/list_helper");
-const supertest = require("supertest");
-const { app } = require("../app");
+import { test, describe, afterEach, beforeEach } from "node:test";
+import assert, {
+  notStrictEqual,
+  strictEqual,
+  deepStrictEqual,
+} from "node:assert";
+import listHelper from "../utils/list_helper.js";
+const { totalLikes, favoriteBlog, mostBlogs, mostLikes } = listHelper;
+import supertest from "supertest";
+import app from "../app.js";
 const api = supertest(app);
-const {
-  blog1,
-  blog2,
-  blog3,
-  blog4,
-  closeDatabase,
-  startDatabase,
-} = require("./helpers");
+import helper from "./helpers.js";
+const { blog1, blog2, blog3, blog4, startDatabase, closeDatabase } = helper;
 
 // -- 11/20/24 --
 // TODO - clean up database before and after tests
@@ -20,12 +19,40 @@ const {
 // -- 11/22/24 --
 // TODO - refactor tests to make the output cleaner
 
-describe("integration tests", async () => {
+let userID, token;
+describe("integration tests", () => {
   beforeEach(async () => {
     await startDatabase();
+    // create a user
+    await api
+      .post("/api/users")
+      .send({
+        username: "testUsername",
+        name: "testName",
+        password: "testPassword",
+      })
+      .expect((response) => {
+        const user = response.body;
+        notStrictEqual(user.id, undefined);
+        notStrictEqual(user.username, undefined);
+        notStrictEqual(user.name, undefined);
+
+        userID = user.id;
+      });
+
+    // create a token
+    await api
+      .post("/api/login")
+      .send({ username: "testUsername", password: "testPassword" })
+      .expect(201)
+      .expect((response) => {
+        token = response.body.token;
+      });
   });
 
   afterEach(async () => {
+    await api.delete(`/api/users/${userID}`).expect(204);
+    await api.get(`/api/users/${userID}`).expect(404);
     await closeDatabase();
   });
 
@@ -34,11 +61,12 @@ describe("integration tests", async () => {
       let id;
       await api
         .post("/api/blogs")
+        .set("Authorization", "Bearer " + token)
         .send(blog1)
         .expect(201)
         .expect("Content-Type", /application\/json/)
         .expect((response) => {
-          assert.notStrictEqual(response.body.id, undefined);
+          notStrictEqual(response.body.id, undefined);
           id = response.body.id;
         });
 
@@ -49,11 +77,12 @@ describe("integration tests", async () => {
       let id;
       await api
         .post("/api/blogs")
+        .set("Authorization", "Bearer " + token)
         .send(blog1)
         .expect(201)
         .expect("Content-Type", /application\/json/)
         .expect((response) => {
-          assert.notStrictEqual(response.body.id, undefined);
+          notStrictEqual(response.body.id, undefined);
           id = response.body.id;
         });
 
@@ -63,64 +92,63 @@ describe("integration tests", async () => {
         .expect(200)
         .expect("Content-Type", /application\/json/)
         .expect((response) => {
-          assert.strictEqual(response.body.likes, 10);
+          strictEqual(response.body.likes, 10);
         });
     });
+
+    // cleanup user created for the test
+    // await api.delete(`/api/users/${userID}`).expect(204);
+    // await api.get(`/api/users/${userID}`).expect(404);
   });
 });
 
 describe("unit tests", () => {
   describe("totalLikes", () => {
     test("returns 0 with no blogs", () => {
-      const result = listHelper.totalLikes([]);
-      assert.strictEqual(result, 0);
+      const result = totalLikes([]);
+      strictEqual(result, 0);
     });
 
     test("returns 10 likes with 2 blogs of 5 likes", () => {
-      const result = listHelper.totalLikes([blog1, blog2]);
-      assert.strictEqual(result, 11);
+      const result = totalLikes([blog1, blog2]);
+      strictEqual(result, 11);
     });
   });
 
   describe("favoriteBlog", () => {
     test("returns null when given no blogs", () => {
-      const result = listHelper.favoriteBlog("test");
-      assert.strictEqual(result, null);
+      const result = favoriteBlog("test");
+      strictEqual(result, null);
     });
 
     test("returns the correct result", () => {
-      const result = listHelper.favoriteBlog([blog1, blog2]);
-      assert.deepStrictEqual(result, blog2);
+      const result = favoriteBlog([blog1, blog2]);
+      deepStrictEqual(result, blog2);
     });
   });
 
   describe("mostBlogs", () => {
     test("returns null when given no blogs", () => {
-      const result = listHelper.mostBlogs([]);
-      assert.strictEqual(result, null);
+      const result = mostBlogs([]);
+      strictEqual(result, null);
     });
 
     test("returns correct result", () => {
-      const result = listHelper.mostBlogs([blog1, blog2, blog3]);
-      assert.strictEqual(result, "author1");
+      const result = mostBlogs([blog1, blog2, blog3]);
+      strictEqual(result, "author1");
     });
   });
 
   describe("mostLikes", () => {
     test("returns null when given no blogs", () => {
-      const result = listHelper.mostLikes([]);
-      assert.strictEqual(result, null);
+      const result = mostLikes([]);
+      strictEqual(result, null);
     });
 
     test("returns correct result", () => {
-      const [author, likes] = listHelper.mostLikes([
-        blog1,
-        blog2,
-        blog3,
-        blog4,
-      ]);
-      assert.strictEqual(author, "author3");
-      assert.strictEqual(likes, 13);
+      const [author, likes] = mostLikes([blog1, blog2, blog3, blog4]);
+      strictEqual(author, "author3");
+      strictEqual(likes, 13);
     });
   });
 });

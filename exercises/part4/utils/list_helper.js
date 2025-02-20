@@ -70,7 +70,7 @@ const mostLikes = (blogs) => {
   return [authorMostLikes, authorLikes];
 };
 
-module.exports = {
+export default {
   totalLikes,
   favoriteBlog,
   mostBlogs,
