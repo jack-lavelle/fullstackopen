@@ -8,6 +8,8 @@ import mongoose from "mongoose";
 import config from "./utils/config.js"; // Ensure to include the .js extension if needed
 import logger from "./utils/logger.js"; // Ensure to include the .js extension if needed
 
+import middleware from "./utils/middleware.js"; // Ensure to include the .js extension if needed
+
 import blogsRouter from "./controllers/blogs.js"; // Ensure to include the .js extension if needed
 import usersRouter from "./controllers/users.js"; // Ensure to include the .js extension if needed
 import loginRouter from "./controllers/auth.js"; // Ensure to include the .js extension if needed
@@ -16,7 +18,7 @@ import loginRouter from "./controllers/auth.js"; // Ensure to include the .js ex
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/blogs", blogsRouter);
+app.use("/api/blogs", middleware.tokenExtractor, blogsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/login", loginRouter);
 //app.use(errorHandler);

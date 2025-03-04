@@ -1,5 +1,5 @@
 import { test, describe, afterEach, beforeEach } from "node:test";
-import assert, {
+import {
   notStrictEqual,
   strictEqual,
   deepStrictEqual,
@@ -51,8 +51,11 @@ describe("integration tests", () => {
   });
 
   afterEach(async () => {
-    await api.delete(`/api/users/${userID}`).expect(204);
-    await api.get(`/api/users/${userID}`).expect(404);
+    if (userID !== undefined) {
+      await api.delete(`/api/users/${userID}`).expect(204);
+      await api.get(`/api/users/${userID}`).expect(404);
+
+    }
     await closeDatabase();
   });
 
@@ -70,7 +73,10 @@ describe("integration tests", () => {
           id = response.body.id;
         });
 
-      await api.delete(`/api/blogs/${id}`).expect(204);
+      await api.delete(`/api/blogs/${id}`)
+          .set("Authorization", "Bearer " + token)
+          .send()
+          .expect(204);
     });
 
     test("ensures a blog can be created, updated, and deleted", async () => {
@@ -86,19 +92,21 @@ describe("integration tests", () => {
           id = response.body.id;
         });
 
-      await api.patch(`/api/blogs/${id}`).send({ likes: 10 }).expect(200);
+      await api
+          .patch(`/api/blogs/${id}`)
+          .set("Authorization", "Bearer " + token)
+          .send({ likes: 10 })
+          .expect(200);
+
       await api
         .get(`/api/blogs/${id}`)
+          .set("Authorization", "Bearer " + token)
         .expect(200)
         .expect("Content-Type", /application\/json/)
         .expect((response) => {
           strictEqual(response.body.likes, 10);
         });
     });
-
-    // cleanup user created for the test
-    // await api.delete(`/api/users/${userID}`).expect(204);
-    // await api.get(`/api/users/${userID}`).expect(404);
   });
 });
 

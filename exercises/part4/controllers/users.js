@@ -25,24 +25,28 @@ usersRouter.get("/:id", async (request, response) => {
 });
 
 usersRouter.post("/", async (request, response) => {
-  const error = validateUser(request.body.username, request.body.password);
-  if (error) {
-    return response.status(400).json({ error: "failed to validate user" });
+  try {
+    const error = validateUser(request.body.username, request.body.password);
+    if (error) {
+      response.status(400).json({ error: "failed to validate user" });
+      return;
+    }
+
+    // silly of me to not properly use the async/await pattern here
+    const existingUser = await User.findOne({
+      username: request.body.username,
+    });
+    if (existingUser !== null) {
+      return response.status(400).json({ error: "username must be unique" });
+    }
+
+    const user = await createUserHandler(request.body);
+
+    await user.save();
+    response.status(201).json(user);
+  } catch (error) {
+    response.status(500).json({ error: error.message });
   }
-
-  // silly of me to not properly use the async/await pattern here
-  const existingUser = await User.findOne({
-    username: request.body.username,
-  });
-  if (existingUser !== null) {
-    response.status(400).json({ error: "username must be unique" });
-    return;
-  }
-
-  const user = await createUserHandler(request.body);
-
-  await user.save();
-  response.status(201).json(user);
 });
 
 usersRouter.delete("/:id", async (request, response) => {

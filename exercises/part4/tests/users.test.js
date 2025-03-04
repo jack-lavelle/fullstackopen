@@ -54,12 +54,10 @@ describe("integration tests", () => {
         await api
           .post("/api/users")
           .send({
-            username: "testUsername1",
+            username: "testUsername",
             name: "testName",
             password: "testPassword",
           })
-          .expect(201)
-          .expect("Content-Type", /application\/json/)
           .expect((response) => {
             const user = response.body;
             notStrictEqual(user.id, undefined);

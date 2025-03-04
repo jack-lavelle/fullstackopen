@@ -1,9 +1,9 @@
 import Blog from "../models/blog.js";
+import User from "../models/user.js";
 import router from "express";
-import { getAuthorizedUserFromRequest } from "../utils/auth_helper.js";
+import jwt from "jsonwebtoken";
 
 const blogsRouter = router.Router();
-
 blogsRouter.get("/", async (_, response) => {
   const blogs = await Blog.find({}).populate("user", {
     id: 1,
@@ -27,23 +27,13 @@ blogsRouter.get("/:id", async (request, response) => {
 });
 
 blogsRouter.post("/", async (request, response) => {
-  let user;
-  try {
-    user = await getAuthorizedUserFromRequest(request);
-  } catch (error) {
-    return response.status(500).json({ error: error.message });
-  }
-
-  if (user === null) {
-    return response.status(401).json({ error: "invalid token" });
-  }
-
   if (!request.body.title || !request.body.url) {
     return response.status(400).end();
   }
 
-  request.body.user = user.id;
-  const blog = new Blog(request.body);
+  let body = request.body;
+  body.user = request.user.id;
+  const blog = new Blog(body);
   if (!blog.likes) {
     blog.likes = 0;
   }
@@ -58,7 +48,17 @@ blogsRouter.delete("/:id", async (request, response) => {
     return;
   }
 
-  await Blog.findByIdAndDelete(request.params.id);
+  const blogID = request.params.id;
+  const blog = await Blog.findById(blogID);
+  if (!blog) {
+    response.status(404).end();
+    return;
+  }
+  if (blog.user.toString() !== request.user.id) {
+    return response.status(401).json({ error: "invalid token" });
+  }
+
+  await Blog.findByIdAndDelete(blogID);
   response.status(204).end();
 });
 
