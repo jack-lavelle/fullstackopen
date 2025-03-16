@@ -1,2 +1,3 @@
 .env
 **/node_modules/**
+exercises/part4/users.json

@@ -1,5 +1,6 @@
-const notesRouter = require("express").Router();
-const Note = require("../models/note");
+import Note from "../models/note.js";
+import router from "express";
+const notesRouter = router.Router();
 
 notesRouter.get("/", (request, response) => {
   Note.find({}).then((notes) => {
@@ -58,4 +59,4 @@ notesRouter.put("/:id", (request, response, next) => {
     .catch((error) => next(error));
 });
 
-module.exports = notesRouter;
+export default notesRouter;
