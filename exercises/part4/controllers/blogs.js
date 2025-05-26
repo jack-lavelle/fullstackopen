@@ -4,8 +4,13 @@ import router from "express";
 import jwt from "jsonwebtoken";
 
 const blogsRouter = router.Router();
-blogsRouter.get("/", async (_, response) => {
-  const blogs = await Blog.find({}).populate("user", {
+blogsRouter.get("/", async (request, response) => {
+  const user = request.user;
+  if (!user) {
+    response.status(401).json({ error: "token missing or invalid" });
+  }
+
+  const blogs = await Blog.find({ user: user._id }).populate("user", {
     id: 1,
     username: 1,
     name: 1,

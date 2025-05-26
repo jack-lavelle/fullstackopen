@@ -40,5 +40,5 @@ export const userLoginHandler = async (request, response) => {
     id: user._id,
   };
 
-  return jwt.sign(userForToken, process.env.SECRET);
+  return { token: jwt.sign(userForToken, process.env.SECRET), user: user };
 };
