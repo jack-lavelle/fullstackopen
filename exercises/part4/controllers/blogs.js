@@ -1,7 +1,5 @@
 import Blog from "../models/blog.js";
-import User from "../models/user.js";
 import router from "express";
-import jwt from "jsonwebtoken";
 
 const blogsRouter = router.Router();
 blogsRouter.get("/", async (request, response) => {

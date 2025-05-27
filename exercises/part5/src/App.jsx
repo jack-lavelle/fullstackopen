@@ -14,8 +14,27 @@ const styles = {
     fontWeight: 'bold',
     fontFamily: 'sans-serif',
     boxShadow: '0 0 10px rgba(255, 0, 0, 0.2)',
+  },
+  successBox: {
+    backgroundColor: '#1f3b2b',
+    color: '#baffba',
+    border: '1px solid #4dff4d',
+    padding: '12px 16px',
+    borderRadius: '6px',
+    marginBottom: '16px',
+    fontWeight: 'bold',
+    fontFamily: 'sans-serif',
+    boxShadow: '0 0 10px rgba(0, 255, 0, 0.2)',
   }
 };
+
+const SuccessNotification = ({ message }) => {
+  if (message === null) {
+    return null;
+  }
+
+  return <div style={styles.successBox} className="success">{message}</div>;
+}
 
 const ErrorNotification = ({ message }) => {
   if (message === null) {
@@ -31,6 +50,68 @@ const App = () => {
   const [userPassword, setUserPassword] = useState('')
   const [user, setUser] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
+  const [successMessage, setSuccessMessage] = useState(null)
+
+  const BlogForm = () => {
+    const [newBlog, setNewBlog] = useState({
+      title: '',
+      author: '',
+      url: ''
+    })
+
+    const addBlog = async () => {
+      try {
+        await blogService.create(newBlog)
+        setBlogs(blogs.concat(newBlog))
+        setSuccessMessage(`Successfully added a new blog "${newBlog.title}" by ${newBlog.author} added!`)
+        setTimeout(() => {
+          setSuccessMessage(null)
+        }, 5000)
+      } catch (exception) {
+        console.error('Error adding new blog:', exception)
+        setErrorMessage('Failed to add new blog.')
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
+      }
+    }
+
+    const handleChange = (event) => {
+      const { name, value } = event.target;
+      setNewBlog(prev => ({ ...prev, [name]: value }));
+    }
+
+    const handleSubmitNewBlog = (event) => {
+      event.preventDefault();
+      addBlog(newBlog);
+    }
+
+    return (
+      <form onSubmit={handleSubmitNewBlog}>
+        <div>
+          title <input type="text" value={newBlog?.title || ''} name="title" onChange={handleChange} />
+        </div>
+        <div>
+          author <input type="text" value={newBlog?.author || ''} name="author" onChange={handleChange} />
+        </div>
+        <div>
+          url <input type="text" value={newBlog?.url || ''} name="url" onChange={handleChange} />
+        </div>
+        <button type="submit">create</button>
+      </form>
+    )
+  }
+
+  const handleLogout = () => {
+    window.localStorage.removeItem('loggedBlogUser')
+    setUser(null)
+  }
+
+  const logoutButton = () => (
+    <button onClick={handleLogout}>
+      logout
+    </button>
+  )
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -55,17 +136,6 @@ const App = () => {
       }, 5000)
     }
   }
-
-  const handleLogout = () => {
-    window.localStorage.removeItem('loggedBlogUser')
-    setUser(null)
-  }
-
-  const logoutButton = () => (
-    <button onClick={handleLogout}>
-      logout
-    </button>
-  )
 
   const loginForm = () => (
     <form onSubmit={handleLogin}>
@@ -108,12 +178,14 @@ const App = () => {
     <div>
       <h1>Blogs</h1>
       <ErrorNotification message={errorMessage} />
+      <SuccessNotification message={successMessage} />
       {
         user === null ?
           loginForm() :
           <div>
             <p>Welcome {user.name}!</p>
             {blogsMap()}
+            <BlogForm />
             {logoutButton()}
           </div>
       }
