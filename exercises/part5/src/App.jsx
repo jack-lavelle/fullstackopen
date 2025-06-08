@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
+import NewBlogForm from './components/NewBlogForm';
 import blogService from './services/blogs'
 import loginService from './services/login'
 
@@ -51,56 +52,6 @@ const App = () => {
   const [user, setUser] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
-
-  const BlogForm = () => {
-    const [newBlog, setNewBlog] = useState({
-      title: '',
-      author: '',
-      url: ''
-    })
-
-    const addBlog = async () => {
-      try {
-        await blogService.create(newBlog)
-        setBlogs(blogs.concat(newBlog))
-        setSuccessMessage(`Successfully added a new blog "${newBlog.title}" by ${newBlog.author} added!`)
-        setTimeout(() => {
-          setSuccessMessage(null)
-        }, 5000)
-      } catch (exception) {
-        console.error('Error adding new blog:', exception)
-        setErrorMessage('Failed to add new blog.')
-        setTimeout(() => {
-          setErrorMessage(null)
-        }, 5000)
-      }
-    }
-
-    const handleChange = (event) => {
-      const { name, value } = event.target;
-      setNewBlog(prev => ({ ...prev, [name]: value }));
-    }
-
-    const handleSubmitNewBlog = (event) => {
-      event.preventDefault();
-      addBlog(newBlog);
-    }
-
-    return (
-      <form onSubmit={handleSubmitNewBlog}>
-        <div>
-          title <input type="text" value={newBlog?.title || ''} name="title" onChange={handleChange} />
-        </div>
-        <div>
-          author <input type="text" value={newBlog?.author || ''} name="author" onChange={handleChange} />
-        </div>
-        <div>
-          url <input type="text" value={newBlog?.url || ''} name="url" onChange={handleChange} />
-        </div>
-        <button type="submit">create</button>
-      </form>
-    )
-  }
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogUser')
@@ -185,7 +136,12 @@ const App = () => {
           <div>
             <p>Welcome {user.name}!</p>
             {blogsMap()}
-            <BlogForm />
+            <NewBlogForm
+              blogs={blogs}
+              setBlogs={setBlogs}
+              setSuccessMessage={setSuccessMessage}
+              setErrorMessage={setErrorMessage}
+            />
             {logoutButton()}
           </div>
       }
