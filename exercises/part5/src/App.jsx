@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import Blog from './components/Blog'
 import NewBlogForm from './components/NewBlogForm';
 import blogService from './services/blogs'
 import loginService from './services/login'
+import BlogsList from './components/Blogs';
 
 const styles = {
   errorBox: {
@@ -100,14 +100,6 @@ const App = () => {
     </form>
   )
 
-  const blogsMap = () => (
-    <div>
-      {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
-      )}
-    </div>
-  )
-
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogUser')
     if (loggedUserJSON) {
@@ -135,13 +127,13 @@ const App = () => {
           loginForm() :
           <div>
             <p>Welcome {user.name}!</p>
-            {blogsMap()}
             <NewBlogForm
               blogs={blogs}
               setBlogs={setBlogs}
               setSuccessMessage={setSuccessMessage}
               setErrorMessage={setErrorMessage}
             />
+            <BlogsList blogs={blogs} />
             {logoutButton()}
           </div>
       }
